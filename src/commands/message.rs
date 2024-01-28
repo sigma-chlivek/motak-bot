@@ -1,7 +1,6 @@
 extern crate rand;
 
-use crate::commands::utils::parse_numeric;
-use rand::Rng;
+use crate::commands::utils::{generate_random_number, handle_error, parse_numeric};
 use serenity::all::standard::CommandResult;
 use serenity::{model::channel::Message, prelude::*};
 use std::collections::HashMap;
@@ -20,21 +19,23 @@ pub async fn handle_roll(ctx: Context, msg: Message) {
         .map(|&s| parse_numeric(s))
         .unwrap_or(None);
 
-    let roll_number = match (lower_limit, upper_limit) {
-        (Some(end), None) => rand::thread_rng().gen_range(0..end),
-        (Some(start), Some(end)) => {
-            if start > end {
-                rand::thread_rng().gen_range(end..start)
-            } else {
-                rand::thread_rng().gen_range(start..end)
-            }
+    let roll_number_res = match (lower_limit, upper_limit) {
+        (Some(end), None) => generate_random_number(0, end),
+        (Some(start), Some(end)) => generate_random_number(start, end),
+        _ => generate_random_number(0, 100),
+    };
+
+    let roll_number = match roll_number_res {
+        Ok(num) => num,
+        Err(_) => {
+            handle_error(&ctx, &msg, "Error while generating random number").await;
+            return;
         }
-        _ => rand::thread_rng().gen_range(0..100),
     };
 
     let message = match roll_number {
         69 => "Nice (69)".to_string(),
-        420 => "Michal is blazing".to_string(),
+        420 => "Michal is blazing (420)".to_string(),
         _ => roll_number.to_string(),
     };
 
