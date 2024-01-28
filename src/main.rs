@@ -1,5 +1,6 @@
 mod commands;
-use crate::commands::message::handle_roll;
+
+use crate::commands::message::{handle_dog, handle_roll};
 use dotenv::dotenv;
 use std::env;
 
@@ -10,14 +11,17 @@ use serenity::{
 };
 
 const ROLL_COMMAND: &str = "!roll";
+const DOG_COMMAND: &str = "!dog";
 
 struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content.contains(ROLL_COMMAND) {
-            handle_roll(ctx, msg).await;
+        match msg.content {
+            _ if msg.content.contains(ROLL_COMMAND) => handle_roll(ctx, msg).await,
+            _ if msg.content.contains(DOG_COMMAND) => handle_dog(ctx, msg).await.expect("Error"),
+            _ => (),
         }
     }
 
